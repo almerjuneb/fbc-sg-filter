@@ -1,0 +1,53 @@
+body {
+    font-family: 'Poppins', sans-serif; /* Ensure Poppins font is used */
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Full viewport height */
+    margin: 0;
+    background-color: #f8f9fa; /* Light background color */
+}
+
+.filter-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 600px; /* Maximum width for better responsiveness */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff; /* White background for the container */
+}
+
+label {
+    margin-right: 10px;
+    font-size: 18px;
+}
+
+select, button {
+    margin: 10px 0;
+    padding: 8px;
+    font-size: 16px;
+    width: 100%;
+    max-width: 300px; /* Limit width for form elements */
+}
+
+.dropdown {
+    margin-top: 10px;
+}
+
+button {
+    padding: 10px 20px;
+    background-color: #007bff; /* Bootstrap primary color */
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 18px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}

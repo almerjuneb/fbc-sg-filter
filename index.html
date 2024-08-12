@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filter and Export Data</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.2/xlsx.full.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f8f9fa;
+        }
+        .filter-card {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+        .card-logo {
+            width: 120px;
+            display: block;
+            margin: 0 auto 20px;
+        }
+        .btn-custom {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+        }
+        .btn-custom:hover {
+            background-color: #0056b3;
+        }
+        .form-check-label {
+            margin-left: 0.5rem;
+        }
+        .form-check {
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center align-items-center min-vh-100">
+            <div class="col-md-8 col-lg-6">
+                <div class="filter-card card text-center">
+                    <img src="fbc_logo.png" alt="Logo" class="card-logo">
+                    <div class="card-body">
+                        <form id="filter-form">
+                            <div class="mb-3">
+                                <label for="file-upload" class="form-label">Upload Excel File:</label>
+                                <input type="file" id="file-upload" class="form-control" accept=".xlsx, .xls" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="filter-type" class="form-label">Filter by:</label>
+                                <select id="filter-type" class="form-select" onchange="showDropdown()">
+                                    <option value="" disabled selected>Select an option</option>
+                                    <option value="Course">Course</option>
+                                    <option value="Department">Department</option>
+                                </select>
+                            </div>
+
+                            <div id="course-dropdown" class="mb-3" style="display: none;">
+                                <label for="course" class="form-label">Select Course:</label>
+                                <select id="course" class="form-select">
+                                    <option value="" disabled selected>Select a course</option>
+                                    <option value="BSIT">BSIT</option>
+                                    <option value="BSCE">BSCE</option>
+                                    <option value="BSECE">BSECE</option>
+                                </select>
+                            </div>
+
+                            <div id="department-dropdown" class="mb-3" style="display: none;">
+                                <label for="department" class="form-label">Select Department:</label>
+                                <select id="department" class="form-select">
+                                    <option value="" disabled selected>Select a department</option>
+                                    <option value="CECS">CECS</option>
+                                    <option value="CBA">CBA</option>
+                                    <option value="AHC">AHC</option>
+                                    <option value="CTEAS">CTEAS</option>
+                                    <option value="CCJE">CCJE</option>
+                                </select>
+                            </div>
+
+                            <div id="column-selection" class="mb-3" style="display: none;">
+                                <p class="form-label">Select columns to include:</p>
+                                <div>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="first-name" value="First Name" checked>
+                                        <label class="form-check-label" for="first-name">First Name</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="last-name" value="Last Name" checked>
+                                        <label class="form-check-label" for="last-name">Last Name</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="email" value="Email" checked>
+                                        <label class="form-check-label" for="email">Email</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="check-in-date" value="Check-In Date" checked>
+                                        <label class="form-check-label" for="check-in-date">Check-In Date</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="device-name" value="Device Name" checked>
+                                        <label class="form-check-label" for="device-name">Device Name</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="course-col" value="Course" checked>
+                                        <label class="form-check-label" for="course-col">Course</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="year" value="Year" checked>
+                                        <label class="form-check-label" for="year">Year</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="office-col" value="Office/Department/College" checked>
+                                        <label class="form-check-label" for="office-col">Office/Department/College</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="button" onclick="filterData()" class="btn btn-custom">Filter and Export</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let fileData = [];
+
+        document.getElementById('file-upload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                fileData = XLSX.utils.sheet_to_json(worksheet);
+                console.log(fileData);  // Debugging: See the loaded data
+            };
+
+            reader.readAsArrayBuffer(file);
+        });
+
+        function showDropdown() {
+            const filterType = document.getElementById('filter-type').value;
+            document.getElementById('course-dropdown').style.display = 'none';
+            document.getElementById('department-dropdown').style.display = 'none';
+            document.getElementById('column-selection').style.display = 'none';
+
+            if (filterType === 'Course') {
+                document.getElementById('course-dropdown').style.display = 'block';
+                document.getElementById('column-selection').style.display = 'block';
+            } else if (filterType === 'Department') {
+                document.getElementById('department-dropdown').style.display = 'block';
+                document.getElementById('column-selection').style.display = 'block';
+            }
+        }
+
+        function filterData() {
+            const filterType = document.getElementById('filter-type').value;
+            let filterValue = '';
+
+            if (filterType === 'Course') {
+                filterValue = document.getElementById('course').value;
+            } else if (filterType === 'Department') {
+                filterValue = document.getElementById('department').value;
+            }
+
+            if (!filterValue) {
+                alert('Please select a valid option');
+                return;
+            }
+
+            // Get selected columns
+            const selectedColumns = Array.from(document.querySelectorAll('#column-selection input:checked')).map(cb => cb.value);
+
+            if (selectedColumns.length === 0) {
+                alert('Please select at least one column');
+                return;
+            }
+
+            // Normalize and filter the data based on the selected filter type and value
+            const filteredData = fileData.filter(item => {
+                const valueToCheck = filterType === 'Department'
+                    ? (item['Office/Department/College'] || '').trim().toLowerCase()
+                    : (item[filterType] || '').trim().toLowerCase();
+                return valueToCheck === filterValue.trim().toLowerCase();
+            });
+
+            if (filteredData.length === 0) {
+                alert('No data found for the selected filter.');
+                return;
+            }
+
+            // Create a new array with the required columns
+            const formattedData = filteredData.map(item => {
+                let row = {};
+                selectedColumns.forEach(col => {
+                    row[col] = item[col] || '';
+                });
+                return row;
+            });
+
+            // Convert the formatted data to a CSV string
+            const csvContent = convertToCSV(formattedData);
+
+            // Download the CSV file
+            downloadCSV(csvContent, `filtered_data_${filterValue}.csv`);
+        }
+
+        function convertToCSV(data) {
+            const escapeCSV = (value) => {
+                if (value === null || value === undefined) {
+                    value = '';
+                }
+                value = value.toString();
+                if (value.includes(',') || value.includes('\n') || value.includes('"')) {
+                    return `"${value.replace(/"/g, '""')}"`; // Escape double quotes by doubling them
+                }
+                return value;
+            };
+
+            const headers = Object.keys(data[0]).map(escapeCSV).join(',');
+            const rows = data.map(row => Object.values(row).map(escapeCSV).join(','));
+            return [headers, ...rows].join('\n');
+        }
+
+        function downloadCSV(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
